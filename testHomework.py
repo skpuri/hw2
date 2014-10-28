@@ -23,13 +23,19 @@ def main():
 	c =  makechange(change, denoms, stock)
 	print c
 
-
+	print 'Extra case: zero'
+	stock = [0, 0, 0, 0]
+	change = 10
+	c =  makechange(change, denoms, stock)
+	print c
 
 	while True:
-		stock = [random.randrange(0, 5), random.randrange(0, 5),random.randrange(0, 5), random.randrange(0, 5)]
-		change = random.randrange(0,50)
+		denoms = [random.randrange(0, 50), random.randrange(0, 50),random.randrange(0, 50), random.randrange(0, 50)]
+		stock = [random.randrange(0, 50), random.randrange(0, 50),random.randrange(0, 50), random.randrange(0, 50)]
+		change = random.randrange(0,1000)
 		result = makechange(change, denoms, stock)
 		print '======================================='
+		print 'dnm: ',denoms
 		print 'stk: ',stock
 		print 'chg: ', change
 		print 'rst: ', result
@@ -39,6 +45,8 @@ def main():
 				total += denoms[i] * result[i]
 			valid = change == total
 			print 'vld: ', valid
+			if not valid:
+				raise ValueError()
 
 if __name__ == '__main__':
 	main()
