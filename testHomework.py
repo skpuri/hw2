@@ -1,5 +1,7 @@
 from MakeChange import *
 
+import random
+
 def main():
 	denoms = [25,10,5,1]
 
@@ -14,6 +16,29 @@ def main():
 	change = 40
 	b =  makechange(change, denoms, stock)
 	print b
+
+	print 'Extra case: no change'
+	stock = [0, 0, 0, 4]
+	change = 5
+	c =  makechange(change, denoms, stock)
+	print c
+
+
+
+	while True:
+		stock = [random.randrange(0, 5), random.randrange(0, 5),random.randrange(0, 5), random.randrange(0, 5)]
+		change = random.randrange(0,50)
+		result = makechange(change, denoms, stock)
+		print '======================================='
+		print 'stk: ',stock
+		print 'chg: ', change
+		print 'rst: ', result
+		total = 0
+		if result != None:
+			for i in range(len(result)):
+				total += denoms[i] * result[i]
+			valid = change == total
+			print 'vld: ', valid
 
 if __name__ == '__main__':
 	main()

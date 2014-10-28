@@ -3,6 +3,12 @@
 # Calculates the ammount of coins to be used as change
 
 def makechange(atmchange, denoms, coinstock):
+	try:
+		return makechange2(atmchange, denoms, coinstock)
+	except:
+		return None
+
+def makechange2(atmchange, denoms, coinstock):
 	
 	# No denoms or coinstock, stop
 	if (not denoms and not atmchange) :
