@@ -14,12 +14,17 @@ import sys
 from SimPy.Simulation import *
 from random import Random,expovariate
 
+def nextId(nowId):
+	if nowId >= len(BusStop.stop) - 1:
+		return 0
+	else:
+		return nowId + 1
 class G:
 	Rnd = Random(12345) # Random Seed
 	arrivalRate = 0
 	travelRate = 0
 
-class Bus:
+class Bus(Process):
 	circuitTime = [] # Store all the times to make a full circuit
 	def __init__(self):
 		Process.__init__(self) # SimPy required		
@@ -31,25 +36,26 @@ class Bus:
 		self.startTime = now() # Starting a new circuit
 		while 1:
 			if not BusStop.stop[self.busStopId].bus: # There is no bus on the bus stop
-				BusStop.stop[self.busStopId].bus = this # Add this bus
+				BusStop.stop[self.busStopId].bus = self # Add this bus
 				if BusStop.stop[self.busStopId].passenger:
 					reactivate(BusStop.stop[self.busStopId])
 				else:
-					passivate(this) # Wait passengers
+					yield passivate, self # Wait passengers
 			yield hold, self, G.Rnd.expovariate(G.travelRate) # Travel to next stop
-			self.busStopId = BusStop.nextId(self.busStopId)
+			self.busStopId = nextId(self.busStopId)
 			if self.busStopId == self.startBusStopId: # Full circuit
-				Bus.circuitTime.extend(now() - self.startTime)
+				Bus.circuitTime.append(now() - self.startTime)
 				self.startTime = now()
 
 
-class BusStop:
+class BusStop(Process):
 	immediate = 0 # Times that there were a bus before passenger
 	notImmediate = 0 # Times that not
 	stop = [] # Store all bus stops
 	busStopNextId = 0 # Id for bus stops
 
 	def __init__(self):
+		Process.__init__(self) # SimPy required
 		self.id = BusStop.busStopNextId
 		BusStop.busStopNextId += 1 # Increment for next ID
 		self.bus = None # Store one bus
@@ -60,7 +66,7 @@ class BusStop:
 			yield hold, self, G.Rnd.expovariate(G.arrivalRate) # Wait some passengers
 			self.passenger = True
 			if self.bus:	# There was a bus on the stop
-				self.passenger = false
+				self.passenger = False
 				BusStop.immediate += 1 
 				reactivate(self.bus)
 				self.bus = None
@@ -69,11 +75,6 @@ class BusStop:
 				self.passenger = False # Now there is a bus
 				BusStop.notImmediate += 1
 				self.bus = None
-	def nextId(nowId):
-		if nowId >= len(BusStop.stop) - 1:
-			return 0
-		else:
-			return nowId + 1
 
 def simulateBusRoute(nstop, nbus, arrivalrate, travelrate, maxsimtime):
 	initialize()
@@ -81,7 +82,7 @@ def simulateBusRoute(nstop, nbus, arrivalrate, travelrate, maxsimtime):
 	G.travelRate = travelrate
 	for I in range(nstop):
 		BS = BusStop()
-		BusStop.stop.extend(BS)
+		BusStop.stop.append(BS)
 		activate(BS,BS.Run())
 	for I in range(nbus):
 		B = Bus()
@@ -89,7 +90,7 @@ def simulateBusRoute(nstop, nbus, arrivalrate, travelrate, maxsimtime):
 
 	simulate(until = maxsimtime)
 	print 'average circuit time: ', sum(Bus.circuitTime)/float(len(Bus.circuitTime))
-	print 'prop. pass. immed. board:: ', BusStop.immediate/(BusStop.immediate+BusStop.notImmediate)
+	print 'prop. pass. immed. board:: ', float(BusStop.immediate)/float(BusStop.immediate+BusStop.notImmediate)
 
 
 def main():
